@@ -1,8 +1,3 @@
-## Author
-
-Hi! 👋 I'm based in 🇨🇦 Calgary actively seeking new opportunities in software development. With a passion for creating intuitive user interfaces product, I'm excited to bring my skills to a dynamic team.
-Feel free to reach out ennis@ennisma.dev if you're looking for a developer who's passionate about creating exceptional user experiences!
-
 # ComfyUI Workflow Hub
 
 A modern web interface for managing and executing ComfyUI workflows. This project provides a user-friendly way to upload, manage, and execute ComfyUI workflows through a clean web interface or API.
