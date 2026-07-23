@@ -19,6 +19,7 @@ const resultImage = document.getElementById('resultImage');
 const workflowContainer = document.getElementById('workflow-container');
 const workflowInfo = document.getElementById('workflow-info');
 const userInputsContainer = document.getElementById('user-inputs-container');
+const imageUploadSection = document.getElementById('image-upload-section');
 const executeButton = document.getElementById('executeButton');
 const regenerateButton = document.getElementById('regenerateButton');
 const downloadButton = document.getElementById('downloadButton');
@@ -106,6 +107,9 @@ function displayWorkflows(workflows) {
           <h4 class="font-semibold text-lg">${workflow.name}</h4>
           <p class="text-sm text-gray-600">${workflow.description || 'No description'}</p>
           <p class="text-xs text-gray-500 mt-1">Nodes: ${workflow.nodeCount} • Uploaded: ${new Date(workflow.uploadTime).toLocaleDateString()}</p>
+          ${workflow.hasLoadImageNode
+            ? '<span class="inline-block mt-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Image input required</span>'
+            : '<span class="inline-block mt-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">No image needed</span>'}
         </div>
         <div class="flex gap-2">
           <button class="select-workflow-button px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700" data-workflow-id="${workflow.id}">
@@ -189,14 +193,27 @@ async function selectWorkflow(workflowId) {
       // Analyze workflow for user inputs
       analyzeWorkflow(workflowData);
       
+      // Check if workflow has LoadImage nodes
+      const hasLoadImageNode = Object.values(workflowData).some(
+        node => node.class_type === 'LoadImage'
+      );
+
+      // Show/hide image upload section based on workflow needs
+      if (hasLoadImageNode) {
+        imageUploadSection.classList.remove('hidden');
+      } else {
+        imageUploadSection.classList.add('hidden');
+      }
+      
       // Show workflow container
       workflowContainer.classList.remove('hidden');
       
       // Hide result container if visible
       resultContainer.classList.add('hidden');
       
-      // Enable execute button if an image is uploaded
-      executeButton.disabled = !imageUploadInput.files.length;
+      // Enable execute button: if no image needed, enable immediately;
+      // otherwise require an uploaded image
+      executeButton.disabled = hasLoadImageNode && !imageUploadInput.files.length;
       
       // Scroll to workflow container
       workflowContainer.scrollIntoView({ behavior: 'smooth' });

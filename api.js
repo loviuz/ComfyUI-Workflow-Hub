@@ -153,10 +153,27 @@ app.get('/api/health', (req, res) => {
 // List workflows endpoint
 app.get('/api/workflows', (req, res) => {
   try {
-    const workflows = Array.from(workflowsMetadata.entries()).map(([id, data]) => ({
-      id,
-      ...data
-    }));
+    const workflows = Array.from(workflowsMetadata.entries()).map(([id, data]) => {
+      // Backward compatibility: detect hasLoadImageNode if not in metadata
+      let hasLoadImageNode = data.hasLoadImageNode;
+      if (hasLoadImageNode === undefined) {
+        try {
+          const wfPath = path.join(workflowsDir, data.fileName);
+          if (fs.existsSync(wfPath)) {
+            const wfData = JSON.parse(fs.readFileSync(wfPath, 'utf8'));
+            hasLoadImageNode = Object.values(wfData).some(n => n.class_type === 'LoadImage');
+            // Persist the detected value
+            data.hasLoadImageNode = hasLoadImageNode;
+          }
+        } catch (e) {
+          hasLoadImageNode = false;
+        }
+      }
+      return { id, ...data, hasLoadImageNode };
+    });
+    
+    // Persist any newly detected values
+    saveWorkflowMetadata();
     
     res.json({
       success: true,
@@ -217,12 +234,18 @@ app.post('/api/upload-workflow', upload.single('workflow'), async (req, res) => 
     // Count nodes
     const nodeCount = Object.keys(workflowData).length;
     
+    // Detect if workflow needs an input image
+    const hasLoadImageNode = Object.values(workflowData).some(
+      node => node.class_type === 'LoadImage'
+    );
+    
     // Store workflow metadata
     const metadata = {
       name: workflowName,
       description: workflowDescription,
       uploadTime: new Date().toISOString(),
       nodeCount,
+      hasLoadImageNode,
       fileName: req.file.filename
     };
     
