@@ -586,13 +586,12 @@ function addTextInput(nodeId, node) {
   label.textContent = title;
   label.htmlFor = `input-${nodeId}`;
   
-  const input = document.createElement('input');
-  input.type = 'text';
+  const input = document.createElement('textarea');
   input.id = `input-${nodeId}`;
   input.className = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+  input.rows = 3;
   input.value = defaultValue;
   input.addEventListener('input', () => {
-    // Store the input value
     if (!workflowUserInputs[nodeId]) {
       workflowUserInputs[nodeId] = {};
     }
@@ -729,7 +728,7 @@ if (workflowUploadInput) {
     
     // Automatically submit the form when a file is selected
     if (workflowUploadInput.files.length > 0) {
-      const submitEvent = new Event('submit');
+      const submitEvent = new Event('submit', { cancelable: true });
       workflowUploadForm.dispatchEvent(submitEvent);
     }
   });
